@@ -62,6 +62,16 @@ The tool accepts JSON files with the following structure:
 }
 ```
 
+## Example Schemas
+
+The `examples/` directory contains sample form schemas demonstrating the tool's capabilities:
+
+- **power_of_attorney.json**: A two-page Power of Attorney form that demonstrates:
+  - All supported field types (textbox, textarea, date, dropdown, radio, checkbox)
+  - Required fields and validation attributes (phone, email)
+  - Multi-column layout (2 columns)
+  - Section organization with headings and subheadings
+
 ## Output
 
 HTML form files are generated in the `output/` directory.
