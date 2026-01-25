@@ -307,6 +307,58 @@ def generate_field_html(field: Dict[str, Any], field_name: str) -> str:
         return checkbox_html
 
 
+def generate_section_html(section: Dict[str, Any], section_index: int) -> str:
+    """
+    Generate HTML markup for a form section.
+
+    Creates a section with heading, optional subheading, and fields in a
+    grid layout. Sections are wrapped in a div with appropriate styling
+    and data attributes.
+
+    Args:
+        section: Section definition from schema containing heading, subheading_1, and fields
+        section_index: Zero-based index of section in form (for data attribute)
+
+    Returns:
+        str: Complete HTML markup for the section including all fields
+    """
+    # Extract section metadata
+    heading = html.escape(section.get('heading', ''))
+    subheading = section.get('subheading_1', '')
+    fields_data = section.get('fields', {})
+    cols = fields_data.get('cols', '1')
+    field_details = fields_data.get('details', [])
+
+    # Start section with heading
+    section_html = f"""            <div class="section" data-section-index="{section_index}">
+                <h2>{heading}</h2>
+"""
+
+    # Add subheading if present
+    if subheading:
+        subheading_escaped = html.escape(subheading)
+        section_html += f"""                <h3>{subheading_escaped}</h3>
+"""
+
+    # Add fields container with column layout
+    section_html += f"""                <div class="fields-container" style="grid-template-columns: repeat({cols}, 1fr);">
+"""
+
+    # Generate each field
+    for field in field_details:
+        label = field.get('label', '')
+        field_name = sanitize_name(label)
+        field_html = generate_field_html(field, field_name)
+        section_html += field_html + '\n'
+
+    # Close fields container and section
+    section_html += """                </div>
+            </div>
+"""
+
+    return section_html
+
+
 def generate_html(schema: Dict[str, Any]) -> str:
     """
     Generate complete HTML form from schema.
@@ -516,39 +568,9 @@ def generate_html(schema: Dict[str, Any]) -> str:
 """
 
     # Generate sections
-    for section in sections:
-        heading = html.escape(section.get('heading', ''))
-        subheading = section.get('subheading_1', '')
-        fields_data = section.get('fields', {})
-        cols = fields_data.get('cols', '1')
-        field_details = fields_data.get('details', [])
-
-        # Add section heading
-        html_content += f"""            <div class="section">
-                <h2>{heading}</h2>
-"""
-
-        # Add subheading if present
-        if subheading:
-            subheading_escaped = html.escape(subheading)
-            html_content += f"""                <h3>{subheading_escaped}</h3>
-"""
-
-        # Add fields container with column layout
-        html_content += f"""                <div class="fields-container" style="grid-template-columns: repeat({cols}, 1fr);">
-"""
-
-        # Generate each field
-        for field in field_details:
-            label = field.get('label', '')
-            field_name = sanitize_name(label)
-            field_html = generate_field_html(field, field_name)
-            html_content += field_html + '\n'
-
-        # Close fields container and section
-        html_content += """                </div>
-            </div>
-"""
+    for section_index, section in enumerate(sections):
+        section_html = generate_section_html(section, section_index)
+        html_content += section_html
 
     # Add form actions
     html_content += """            <div class="form-actions">
