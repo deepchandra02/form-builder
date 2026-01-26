@@ -36,9 +36,10 @@ export function JsonEditor({
   return (
     <Card
       data-slot="json-editor"
-      className={cn("overflow-hidden p-0", className)}
+      className={cn("overflow-hidden p-0 min-w-0", className)}
     >
       <Editor
+        width="100%"
         height={height}
         defaultLanguage="json"
         value={value}
