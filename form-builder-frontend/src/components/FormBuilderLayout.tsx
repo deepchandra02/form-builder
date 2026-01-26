@@ -1,33 +1,51 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Group, Panel, Separator } from "react-resizable-panels"
-import { GripVertical } from "lucide-react"
+import { GripVertical, AlertCircle } from "lucide-react"
 import { JsonEditor } from "@/components/JsonEditor"
 import { FormPreview } from "@/components/FormPreview"
-
-const DEFAULT_JSON = `{
-  "form_code": "SAMPLE_FORM",
-  "form_title": "Sample Form",
-  "sections": []
-}`
+import { useDebounce } from "@/hooks/useDebounce"
+import { validateFormSchema } from "@/lib/types"
+import { generateFormHtml } from "@/lib/formGenerator"
+import { DEFAULT_JSON } from "@/lib/examples"
 
 export function FormBuilderLayout() {
-  const [jsonValue, setJsonValue] = useState(DEFAULT_JSON)
-  const [previewHtml] = useState("")
+  const [jsonText, setJsonText] = useState(DEFAULT_JSON)
+  const debouncedJson = useDebounce(jsonText, 300)
+  const [error, setError] = useState<string | null>(null)
+  const [previewHtml, setPreviewHtml] = useState("")
 
-  // TODO: Connect JSON editor changes to HTML generation
-  // When form schema is parsed, use setPreviewHtml to update the preview
-  void jsonValue
+  useEffect(() => {
+    try {
+      const parsed = JSON.parse(debouncedJson)
+      const validation = validateFormSchema(parsed)
+
+      if (validation.valid && validation.schema) {
+        setPreviewHtml(generateFormHtml(validation.schema))
+        setError(null)
+      } else {
+        setError(validation.errors.map((e) => e.message).join(", "))
+      }
+    } catch {
+      setError("Invalid JSON syntax")
+    }
+  }, [debouncedJson])
 
   return (
     <div className="h-screen w-full">
       <Group orientation="horizontal">
         <Panel defaultSize={50} minSize={30}>
-          <div className="h-full p-4">
+          <div className="h-full p-4 flex flex-col gap-2">
             <JsonEditor
-              value={jsonValue}
-              onChange={(value) => setJsonValue(value || "")}
-              className="h-full"
+              value={jsonText}
+              onChange={(value) => setJsonText(value || "")}
+              className="flex-1"
             />
+            {error && (
+              <div className="flex items-start gap-2 p-3 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+                <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
           </div>
         </Panel>
 
