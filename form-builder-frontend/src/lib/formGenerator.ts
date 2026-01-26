@@ -1,4 +1,4 @@
-import type { FieldDefinition } from './types';
+import type { FieldDefinition, Section } from './types';
 
 /**
  * Escape HTML special characters to prevent XSS attacks.
@@ -190,4 +190,61 @@ export function generateFieldHtml(field: FieldDefinition, fieldName: string): st
 
   // This should never happen if validateFormSchema was used
   throw new Error(`Unsupported field type '${type}' in field '${label}'`);
+}
+
+/**
+ * Generate HTML markup for a form section.
+ *
+ * Creates a section with heading, optional subheading, and fields in a
+ * grid layout. Sections are wrapped in a div with appropriate styling
+ * and data attributes.
+ *
+ * @param section - Section definition from schema containing heading, subheading_1, and fields
+ * @param sectionIndex - Zero-based index of section in form (for data attribute)
+ * @returns Complete HTML markup for the section including all fields
+ *
+ * @example
+ * const section = {
+ *   heading: "Page 1",
+ *   subheading_1: "Principal Details",
+ *   fields: { cols: "2", details: [...] }
+ * };
+ * const html = generateSectionHtml(section, 0);
+ */
+export function generateSectionHtml(section: Section, sectionIndex: number): string {
+  // Extract section metadata
+  const heading = escapeHtml(section.heading);
+  const subheading = section.subheading_1;
+  const cols = section.fields.cols;
+  const fieldDetails = section.fields.details;
+
+  // Start section with heading
+  let sectionHtml = `            <div class="section" data-section-index="${sectionIndex}">
+                <h2>${heading}</h2>
+`;
+
+  // Add subheading if present
+  if (subheading) {
+    const subheadingEscaped = escapeHtml(subheading);
+    sectionHtml += `                <h3>${subheadingEscaped}</h3>
+`;
+  }
+
+  // Add fields container with column layout
+  sectionHtml += `                <div class="fields-container" style="grid-template-columns: repeat(${cols}, 1fr);">
+`;
+
+  // Generate each field
+  for (const field of fieldDetails) {
+    const fieldName = sanitizeName(field.label);
+    const fieldHtml = generateFieldHtml(field, fieldName);
+    sectionHtml += fieldHtml + '\n';
+  }
+
+  // Close fields container and section
+  sectionHtml += `                </div>
+            </div>
+`;
+
+  return sectionHtml;
 }
