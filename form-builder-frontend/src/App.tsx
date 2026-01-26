@@ -1,7 +1,13 @@
 import { ComponentExample } from "@/components/component-example";
+import { VibeKanbanWebCompanion } from 'vibe-kanban-web-companion';
 
 export function App() {
-return <ComponentExample />;
+  return (
+    <>
+      <VibeKanbanWebCompanion />
+      <ComponentExample />
+    </>
+  );
 }
 
 export default App;
