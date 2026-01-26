@@ -4,12 +4,12 @@
  */
 
 import { type FormSchema, type FieldDefinition, validateFormSchema } from '@/lib/types';
-import powerOfAttorneyData from '../../examples/power_of_attorney.json';
+import { POWER_OF_ATTORNEY_EXAMPLE } from '@/lib/examples';
 
 // Test 1: Runtime validation should pass
 console.log('Test 1: Validating Power of Attorney JSON...');
 try {
-  validateFormSchema(powerOfAttorneyData);
+  validateFormSchema(POWER_OF_ATTORNEY_EXAMPLE);
   console.log('✅ Power of Attorney JSON is valid');
 } catch (error) {
   console.error('❌ Validation failed:', error);
@@ -17,7 +17,7 @@ try {
 
 // Test 2: TypeScript should accept the JSON as FormSchema
 console.log('\nTest 2: Type checking Power of Attorney JSON...');
-const schema: FormSchema = powerOfAttorneyData;
+const schema: FormSchema = POWER_OF_ATTORNEY_EXAMPLE;
 console.log('✅ TypeScript accepts the JSON as FormSchema');
 console.log(`Form: ${schema.form_title} (${schema.form_code})`);
 console.log(`Sections: ${schema.sections.length}`);
@@ -38,8 +38,10 @@ schema.sections.forEach((section, sectionIndex) => {
     // TypeScript narrows the type based on field.type
     if (field.type === 'dropdown' || field.type === 'radio' || field.type === 'checkbox') {
       // TypeScript knows field.options exists here
-      const optionCount = Object.keys(field.options).length;
-      console.log(`      Options: ${optionCount}`);
+      if (field.options) {
+        const optionCount = Object.keys(field.options).length;
+        console.log(`      Options: ${optionCount}`);
+      }
     }
 
     if (field.type === 'textbox' && field.validation) {
@@ -89,7 +91,7 @@ const validTextbox: FieldDefinition = {
   validation: 'email',
   required: true,
 };
-console.log('✅ Valid textbox with validation created');
+console.log('✅ Valid textbox with validation created', validTextbox.label);
 
 const validDropdown: FieldDefinition = {
   type: 'dropdown',
@@ -100,13 +102,13 @@ const validDropdown: FieldDefinition = {
   },
   required: true,
 };
-console.log('✅ Valid dropdown with options created');
+console.log('✅ Valid dropdown with options created', validDropdown.label);
 
 const validDate: FieldDefinition = {
   type: 'date',
   label: 'Birth Date',
   required: true,
 };
-console.log('✅ Valid date field created');
+console.log('✅ Valid date field created', validDate.label);
 
 console.log('\n✅ All tests passed!');
