@@ -1,4 +1,4 @@
-import type { FieldDefinition, Section } from './types';
+import type { FieldDefinition, Section, FormSchema } from './types';
 
 /**
  * Escape HTML special characters to prevent XSS attacks.
@@ -247,4 +247,46 @@ export function generateSectionHtml(section: Section, sectionIndex: number): str
 `;
 
   return sectionHtml;
+}
+
+/**
+ * Generate complete HTML form from schema.
+ *
+ * Creates a form with title, code, all sections, and submit/reset buttons.
+ * Returns form body HTML only - FormPreview component wraps it with DOCTYPE,
+ * Tailwind CDN, and theme support.
+ *
+ * @param schema - Complete form schema
+ * @returns Complete HTML markup for the form
+ *
+ * @example
+ * const schema = { form_title: "Contact Form", form_code: "CF001", sections: [...] };
+ * const html = generateFormHtml(schema);
+ */
+export function generateFormHtml(schema: FormSchema): string {
+  let sectionsHtml = '';
+
+  schema.sections.forEach((section, index) => {
+    sectionsHtml += generateSectionHtml(section, index);
+  });
+
+  return `
+    <div class="max-w-4xl mx-auto">
+      <h1 class="text-2xl font-bold text-gray-900 mb-6">${escapeHtml(schema.form_title)}</h1>
+      <p class="text-sm text-gray-500 mb-8">Form Code: ${escapeHtml(schema.form_code)}</p>
+
+      <form class="space-y-6">
+        ${sectionsHtml}
+
+        <div class="flex gap-4 pt-6 border-t">
+          <button type="submit" class="px-6 py-2 bg-red-800 text-white rounded-md hover:bg-red-900 focus:outline-none focus:ring-2 focus:ring-red-500">
+            Submit
+          </button>
+          <button type="reset" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
+            Reset
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
 }
