@@ -95,25 +95,34 @@ def load_schema(json_path: str) -> Dict[str, Any]:
         if 'heading' not in section:
             raise ValueError(f"Section {i} missing 'heading'")
 
-        if 'fields' not in section:
-            raise ValueError(f"Section {i} missing 'fields'")
+        # Check for numbered field groups (fields_1 through fields_10)
+        has_any_fields = False
+        for field_num in range(1, 11):
+            fields_key = f'fields_{field_num}'
+            if fields_key not in section:
+                continue
 
-        fields = section['fields']
-        if not isinstance(fields, dict):
-            raise ValueError(f"Section {i} 'fields' must be an object")
+            has_any_fields = True
+            fields = section[fields_key]
 
-        if 'cols' not in fields:
-            raise ValueError(f"Section {i} missing 'fields.cols'")
+            if not isinstance(fields, dict):
+                raise ValueError(f"Section {i} '{fields_key}' must be an object")
 
-        if 'details' not in fields:
-            raise ValueError(f"Section {i} missing 'fields.details'")
+            if 'cols' not in fields:
+                raise ValueError(f"Section {i} missing '{fields_key}.cols'")
 
-        details = fields['details']
-        if not isinstance(details, list):
-            raise ValueError(f"Section {i} 'fields.details' must be an array")
+            if 'details' not in fields:
+                raise ValueError(f"Section {i} missing '{fields_key}.details'")
 
-        if len(details) == 0:
-            raise ValueError(f"Section {i} 'fields.details' cannot be empty")
+            details = fields['details']
+            if not isinstance(details, list):
+                raise ValueError(f"Section {i} '{fields_key}.details' must be an array")
+
+            if len(details) == 0:
+                raise ValueError(f"Section {i} '{fields_key}.details' cannot be empty")
+
+        if not has_any_fields:
+            raise ValueError(f"Section {i} must have at least one fields_N (fields_1, fields_2, etc.)")
 
     return schema
 
@@ -311,49 +320,60 @@ def generate_section_html(section: Dict[str, Any], section_index: int) -> str:
     """
     Generate HTML markup for a form section.
 
-    Creates a section with heading, optional subheading, and fields in a
-    grid layout. Sections are wrapped in a div with appropriate styling
-    and data attributes.
+    Creates a section with heading and one or more field groups.
+    Each field group can have its own optional subheading and grid layout.
+    Sections are wrapped in a div with appropriate styling and data attributes.
 
     Args:
-        section: Section definition from schema containing heading, subheading_1, and fields
+        section: Section definition from schema containing heading and numbered field groups
         section_index: Zero-based index of section in form (for data attribute)
 
     Returns:
-        str: Complete HTML markup for the section including all fields
+        str: Complete HTML markup for the section including all field groups
     """
-    # Extract section metadata
     heading = html.escape(section.get('heading', ''))
-    subheading = section.get('subheading_1', '')
-    fields_data = section.get('fields', {})
-    cols = fields_data.get('cols', '1')
-    field_details = fields_data.get('details', [])
 
     # Start section with heading
     section_html = f"""            <div class="section" data-section-index="{section_index}">
                 <h2>{heading}</h2>
 """
 
-    # Add subheading if present
-    if subheading:
-        subheading_escaped = html.escape(subheading)
-        section_html += f"""                <h3>{subheading_escaped}</h3>
+    # Loop through numbered field groups (1-10)
+    for i in range(1, 11):
+        subheading_key = f'subheading_{i}'
+        fields_key = f'fields_{i}'
+
+        subheading = section.get(subheading_key, '')
+        fields_config = section.get(fields_key)
+
+        # Skip if this field group doesn't exist
+        if not fields_config:
+            continue
+
+        # Render subheading if present
+        if subheading:
+            section_html += f"""                <h3>{html.escape(subheading)}</h3>
 """
 
-    # Add fields container with column layout
-    section_html += f"""                <div class="fields-container" style="grid-template-columns: repeat({cols}, 1fr);">
+        # Render fields grid
+        cols = fields_config.get('cols', '1')
+        section_html += f"""                <div class="grid gap-4" style="grid-template-columns: repeat({cols}, 1fr);">
 """
 
-    # Generate each field
-    for field in field_details:
-        label = field.get('label', '')
-        field_name = sanitize_name(label)
-        field_html = generate_field_html(field, field_name)
-        section_html += field_html + '\n'
+        # Generate each field
+        field_details = fields_config.get('details', [])
+        for field in field_details:
+            label = field.get('label', '')
+            field_name = sanitize_name(label)
+            field_html = generate_field_html(field, field_name)
+            section_html += field_html + '\n'
 
-    # Close fields container and section
-    section_html += """                </div>
-            </div>
+        # Close fields container
+        section_html += """                </div>
+"""
+
+    # Close section
+    section_html += """            </div>
 """
 
     return section_html

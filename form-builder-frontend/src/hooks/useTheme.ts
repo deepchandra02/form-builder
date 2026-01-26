@@ -1,5 +1,17 @@
 import { useEffect, useState } from "react"
 
+/**
+ * Monitors the document's theme class and returns the appropriate Monaco editor theme.
+ *
+ * Observes the document's root element for class changes and updates when
+ * the "dark" class is added or removed.
+ *
+ * @returns Monaco editor theme name: "vs-dark" for dark mode, "light" for light mode
+ *
+ * @example
+ * const theme = useTheme();
+ * <Editor theme={theme} />
+ */
 export function useTheme(): "vs-dark" | "light" {
   const [theme, setTheme] = useState<"vs-dark" | "light">(() => {
     return document.documentElement.classList.contains("dark")

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useMemo } from "react"
 import { Group, Panel, Separator } from "react-resizable-panels"
 import { GripVertical, AlertCircle } from "lucide-react"
 import { JsonEditor } from "@/components/JsonEditor"
@@ -8,25 +8,36 @@ import { validateFormSchema } from "@/lib/types"
 import { generateFormHtml } from "@/lib/formGenerator"
 import { DEFAULT_JSON } from "@/lib/examples"
 
+/**
+ * Main layout component for the form builder.
+ * Features a split-pane view with JSON editor on the left and live preview on the right.
+ */
 export function FormBuilderLayout() {
   const [jsonText, setJsonText] = useState(DEFAULT_JSON)
   const debouncedJson = useDebounce(jsonText, 300)
-  const [error, setError] = useState<string | null>(null)
-  const [previewHtml, setPreviewHtml] = useState("")
 
-  useEffect(() => {
+  // Derive preview HTML and error state from debounced JSON
+  const { previewHtml, error } = useMemo(() => {
     try {
       const parsed = JSON.parse(debouncedJson)
       const validation = validateFormSchema(parsed)
 
       if (validation.valid && validation.schema) {
-        setPreviewHtml(generateFormHtml(validation.schema))
-        setError(null)
+        return {
+          previewHtml: generateFormHtml(validation.schema),
+          error: null
+        }
       } else {
-        setError(validation.errors.map((e) => e.message).join(", "))
+        return {
+          previewHtml: "",
+          error: validation.errors.map((e) => e.message).join(", ")
+        }
       }
     } catch {
-      setError("Invalid JSON syntax")
+      return {
+        previewHtml: "",
+        error: "Invalid JSON syntax"
+      }
     }
   }, [debouncedJson])
 

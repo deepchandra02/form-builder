@@ -30,10 +30,20 @@ schema.sections.forEach((section, sectionIndex) => {
   if (section.subheading_1) {
     console.log(`  Subheading: ${section.subheading_1}`);
   }
-  console.log(`  Columns: ${section.fields.cols}`);
-  console.log(`  Fields: ${section.fields.details.length}`);
+  // Check each numbered field group
+  for (let i = 1; i <= 10; i++) {
+    const fieldsKey = `fields_${i}` as keyof typeof section;
+    const fieldsConfig = section[fieldsKey];
 
-  section.fields.details.forEach((field) => {
+    if (!fieldsConfig || typeof fieldsConfig !== 'object' || !('cols' in fieldsConfig)) {
+      continue;
+    }
+
+    console.log(`  Field Group ${i}:`);
+    console.log(`    Columns: ${fieldsConfig.cols}`);
+    console.log(`    Fields: ${fieldsConfig.details.length}`);
+
+  fieldsConfig.details.forEach((field) => {
     console.log(`    - ${field.label} (${field.type})${field.required ? ' *' : ''}`);
 
     // TypeScript narrows the type based on field.type
@@ -50,6 +60,7 @@ schema.sections.forEach((section, sectionIndex) => {
       console.log(`      Validation: ${field.validation}`);
     }
   });
+  }
 });
 
 // Test 4: Demonstrate type safety (these would error at compile-time)

@@ -1,7 +1,11 @@
 import { Editor } from "@monaco-editor/react"
+import type { editor } from "monaco-editor"
 import { useTheme } from "@/hooks/useTheme"
 import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
+
+/** Monaco editor marker type */
+type EditorMarker = editor.IMarker
 
 interface JsonEditorProps {
   value: string
@@ -9,9 +13,12 @@ interface JsonEditorProps {
   className?: string
   height?: string | number
   readOnly?: boolean
-  onValidationError?: (errors: any[]) => void
+  onValidationError?: (errors: EditorMarker[]) => void
 }
 
+/**
+ * Monaco-based JSON editor component with syntax highlighting and validation.
+ */
 export function JsonEditor({
   value,
   onChange,
@@ -26,7 +33,7 @@ export function JsonEditor({
     onChange(value)
   }
 
-  const handleEditorValidation = (markers: any[]) => {
+  const handleEditorValidation = (markers: EditorMarker[]) => {
     if (onValidationError) {
       const errors = markers.filter((marker) => marker.severity === 8)
       onValidationError(errors)

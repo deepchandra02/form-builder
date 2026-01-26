@@ -1,4 +1,4 @@
-import type { FieldDefinition, Section, FormSchema } from './types';
+import type { FieldDefinition, Section, FormSchema, FieldsConfig } from './types';
 
 /**
  * Escape HTML special characters to prevent XSS attacks.
@@ -195,55 +195,70 @@ export function generateFieldHtml(field: FieldDefinition, fieldName: string): st
 /**
  * Generate HTML markup for a form section.
  *
- * Creates a section with heading, optional subheading, and fields in a
- * grid layout. Sections are wrapped in a div with appropriate styling
- * and data attributes.
+ * Creates a section with heading and one or more field groups.
+ * Each field group can have its own optional subheading and grid layout.
+ * Sections are wrapped in a div with appropriate styling and data attributes.
  *
- * @param section - Section definition from schema containing heading, subheading_1, and fields
+ * @param section - Section definition from schema containing heading and numbered field groups
  * @param sectionIndex - Zero-based index of section in form (for data attribute)
- * @returns Complete HTML markup for the section including all fields
+ * @returns Complete HTML markup for the section including all field groups
  *
  * @example
  * const section = {
  *   heading: "Page 1",
  *   subheading_1: "Principal Details",
- *   fields: { cols: "2", details: [...] }
+ *   fields_1: { cols: "2", details: [...] },
+ *   subheading_2: "Additional Info",
+ *   fields_2: { cols: "1", details: [...] }
  * };
  * const html = generateSectionHtml(section, 0);
  */
 export function generateSectionHtml(section: Section, sectionIndex: number): string {
-  // Extract section metadata
   const heading = escapeHtml(section.heading);
-  const subheading = section.subheading_1;
-  const cols = section.fields.cols;
-  const fieldDetails = section.fields.details;
 
   // Start section with heading
   let sectionHtml = `            <div class="section" data-section-index="${sectionIndex}">
                 <h2>${heading}</h2>
 `;
 
-  // Add subheading if present
-  if (subheading) {
-    const subheadingEscaped = escapeHtml(subheading);
-    sectionHtml += `                <h3>${subheadingEscaped}</h3>
+  // Loop through numbered field groups (1-10)
+  for (let i = 1; i <= 10; i++) {
+    const subheadingKey = `subheading_${i}` as keyof Section;
+    const fieldsKey = `fields_${i}` as keyof Section;
+
+    const subheading = section[subheadingKey];
+    const fieldsConfig = section[fieldsKey] as FieldsConfig | undefined;
+
+    // Skip if this field group doesn't exist
+    if (!fieldsConfig) {
+      continue;
+    }
+
+    // Render subheading if present
+    if (subheading && typeof subheading === 'string') {
+      sectionHtml += `                <h3>${escapeHtml(subheading)}</h3>
+`;
+    }
+
+    // Render fields grid
+    const cols = fieldsConfig.cols;
+    sectionHtml += `                <div class="grid gap-4" style="grid-template-columns: repeat(${cols}, 1fr);">
+`;
+
+    // Generate each field
+    for (const field of fieldsConfig.details) {
+      const fieldName = sanitizeName(field.label);
+      const fieldHtml = generateFieldHtml(field, fieldName);
+      sectionHtml += fieldHtml + '\n';
+    }
+
+    // Close fields container
+    sectionHtml += `                </div>
 `;
   }
 
-  // Add fields container with column layout
-  sectionHtml += `                <div class="fields-container" style="grid-template-columns: repeat(${cols}, 1fr);">
-`;
-
-  // Generate each field
-  for (const field of fieldDetails) {
-    const fieldName = sanitizeName(field.label);
-    const fieldHtml = generateFieldHtml(field, fieldName);
-    sectionHtml += fieldHtml + '\n';
-  }
-
-  // Close fields container and section
-  sectionHtml += `                </div>
-            </div>
+  // Close section
+  sectionHtml += `            </div>
 `;
 
   return sectionHtml;

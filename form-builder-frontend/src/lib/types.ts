@@ -1,42 +1,145 @@
+/**
+ * Supported form field types.
+ * - textbox: Single-line text input
+ * - textarea: Multi-line text input
+ * - date: Date picker
+ * - dropdown: Select dropdown
+ * - radio: Radio button group (mutually exclusive)
+ * - checkbox: Checkbox group (multiple selection)
+ */
 export type FieldType = 'textbox' | 'textarea' | 'date' | 'dropdown' | 'radio' | 'checkbox';
 
+/**
+ * Validation rules for textbox fields.
+ * - email: Validates email format (sets input type="email")
+ * - phone: Validates phone format (sets input type="tel")
+ */
 export type ValidationRule = 'email' | 'phone';
 
+/**
+ * Definition of a single form field.
+ */
 export interface FieldDefinition {
+  /** Display label for the field */
   label: string;
+  /** Type of input control */
   type: FieldType;
+  /** Whether the field is required */
   required?: boolean;
+  /** Validation rule (only for textbox type) */
   validation?: ValidationRule;
-  options?: Record<string, string>;  // For dropdown, radio, checkbox
+  /** Options for dropdown, radio, and checkbox fields (key-value pairs) */
+  options?: Record<string, string>;
 }
 
+/**
+ * Configuration for fields within a section.
+ */
 export interface FieldsConfig {
-  cols: string;  // Number of columns ("1", "2", "3", etc.)
+  /** Number of columns for grid layout ("1", "2", "3", etc.) */
+  cols: string;
+  /** Array of field definitions */
   details: FieldDefinition[];
 }
 
+/**
+ * A section of the form containing one or more groups of fields.
+ * Each field group can have its own subheading and column layout.
+ * Supports up to 10 field groups per section.
+ */
 export interface Section {
+  /** Main heading for the section */
   heading: string;
+  /** Optional subheading for first field group */
   subheading_1?: string;
-  fields: FieldsConfig;
+  /** First field group */
+  fields_1?: FieldsConfig;
+  /** Optional subheading for second field group */
+  subheading_2?: string;
+  /** Second field group */
+  fields_2?: FieldsConfig;
+  /** Optional subheading for third field group */
+  subheading_3?: string;
+  /** Third field group */
+  fields_3?: FieldsConfig;
+  /** Optional subheading for fourth field group */
+  subheading_4?: string;
+  /** Fourth field group */
+  fields_4?: FieldsConfig;
+  /** Optional subheading for fifth field group */
+  subheading_5?: string;
+  /** Fifth field group */
+  fields_5?: FieldsConfig;
+  /** Optional subheading for sixth field group */
+  subheading_6?: string;
+  /** Sixth field group */
+  fields_6?: FieldsConfig;
+  /** Optional subheading for seventh field group */
+  subheading_7?: string;
+  /** Seventh field group */
+  fields_7?: FieldsConfig;
+  /** Optional subheading for eighth field group */
+  subheading_8?: string;
+  /** Eighth field group */
+  fields_8?: FieldsConfig;
+  /** Optional subheading for ninth field group */
+  subheading_9?: string;
+  /** Ninth field group */
+  fields_9?: FieldsConfig;
+  /** Optional subheading for tenth field group */
+  subheading_10?: string;
+  /** Tenth field group */
+  fields_10?: FieldsConfig;
 }
 
+/**
+ * Complete form schema definition.
+ */
 export interface FormSchema {
+  /** Unique identifier for the form */
   form_code: string;
+  /** Display title of the form */
   form_title: string;
+  /** Last modification date (ISO string or timestamp) */
   date_last_modified: string;
+  /** Language of the form content */
   language: string;
+  /** Array of form sections */
   sections: Section[];
 }
 
+/**
+ * Represents a validation error with path and message.
+ */
 export interface ValidationError {
+  /** JSON path to the invalid field (e.g., "sections[0].fields.details[1].label") */
   path: string;
+  /** Human-readable error message */
   message: string;
 }
 
 /**
- * Runtime validation function for FormSchema
- * Returns validation result with errors array
+ * Validates a form schema at runtime.
+ *
+ * Performs comprehensive validation including:
+ * - Required top-level fields (form_code, form_title, date_last_modified, language, sections)
+ * - Non-empty sections array
+ * - Section structure (heading, fields)
+ * - Field definitions (label, type, options for choice fields)
+ * - Validation rules
+ *
+ * @param data - Unknown data to validate as FormSchema
+ * @returns Object containing validation result, errors array, and parsed schema if valid
+ *
+ * @example
+ * const result = validateFormSchema(jsonData);
+ * if (result.valid) {
+ *   // Use result.schema safely
+ *   generateFormHtml(result.schema);
+ * } else {
+ *   // Display result.errors to user
+ *   console.error(result.errors);
+ * }
  */
 export function validateFormSchema(data: unknown): {
   valid: boolean;
@@ -71,6 +174,11 @@ export function validateFormSchema(data: unknown): {
     return { valid: false, errors }; // Can't continue without sections
   }
 
+  // Check for empty sections array
+  if (schema.sections.length === 0) {
+    errors.push({ path: 'sections', message: 'sections array must not be empty' });
+  }
+
   // Validate each section
   schema.sections.forEach((section: unknown, sectionIndex: number) => {
     const basePath = `sections[${sectionIndex}]`;
@@ -86,29 +194,51 @@ export function validateFormSchema(data: unknown): {
       errors.push({ path: `${basePath}.heading`, message: 'heading must be a string' });
     }
 
-    if (sec.subheading_1 !== undefined && typeof sec.subheading_1 !== 'string') {
-      errors.push({ path: `${basePath}.subheading_1`, message: 'subheading_1 must be a string' });
+    // Validate numbered subheadings (1-10)
+    for (let i = 1; i <= 10; i++) {
+      const subheadingKey = `subheading_${i}`;
+      const subheading = sec[subheadingKey];
+
+      if (subheading !== undefined && typeof subheading !== 'string') {
+        errors.push({ path: `${basePath}.${subheadingKey}`, message: `${subheadingKey} must be a string` });
+      }
     }
 
-    if (!sec.fields || typeof sec.fields !== 'object') {
-      errors.push({ path: `${basePath}.fields`, message: 'fields must be an object' });
-      return;
-    }
+    // Validate numbered field groups (1-10)
+    let hasAnyFields = false;
 
-    const fields = sec.fields as Record<string, unknown>;
+    for (let i = 1; i <= 10; i++) {
+      const fieldsKey = `fields_${i}`;
+      const fieldsData = sec[fieldsKey];
 
-    if (typeof fields.cols !== 'string') {
-      errors.push({ path: `${basePath}.fields.cols`, message: 'cols must be a string' });
-    }
+      if (fieldsData === undefined) {
+        continue; // This field group doesn't exist, skip it
+      }
 
-    if (!Array.isArray(fields.details)) {
-      errors.push({ path: `${basePath}.fields.details`, message: 'details must be an array' });
-      return;
-    }
+      hasAnyFields = true;
 
-    // Validate each field
-    fields.details.forEach((field: unknown, fieldIndex: number) => {
-      const fieldPath = `${basePath}.fields.details[${fieldIndex}]`;
+      // Validate fields_N structure
+      if (!fieldsData || typeof fieldsData !== 'object' || Array.isArray(fieldsData)) {
+        errors.push({ path: `${basePath}.${fieldsKey}`, message: `${fieldsKey} must be an object` });
+        continue;
+      }
+
+      const fields = fieldsData as Record<string, unknown>;
+
+      // Validate cols
+      if (typeof fields.cols !== 'string') {
+        errors.push({ path: `${basePath}.${fieldsKey}.cols`, message: 'cols must be a string' });
+      }
+
+      // Validate details array
+      if (!Array.isArray(fields.details)) {
+        errors.push({ path: `${basePath}.${fieldsKey}.details`, message: 'details must be an array' });
+        continue;
+      }
+
+      // Validate each field in the details array
+      fields.details.forEach((field: unknown, fieldIndex: number) => {
+        const fieldPath = `${basePath}.${fieldsKey}.details[${fieldIndex}]`;
 
       if (!field || typeof field !== 'object') {
         errors.push({ path: fieldPath, message: 'Field must be an object' });
@@ -150,7 +280,13 @@ export function validateFormSchema(data: unknown): {
           errors.push({ path: `${fieldPath}.options`, message: 'options must contain at least one entry' });
         }
       }
-    });
+      });
+    }
+
+    // Ensure at least one fields_N exists in the section
+    if (!hasAnyFields) {
+      errors.push({ path: basePath, message: 'Section must have at least one fields_N (fields_1, fields_2, etc.)' });
+    }
   });
 
   return {

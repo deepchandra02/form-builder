@@ -7,7 +7,7 @@
     {
       "heading": "Page 1",
       "subheading_1": "Principal Details",
-      "fields": {
+      "fields_1": {
         "cols": "2",
         "details": [
           {
@@ -70,7 +70,7 @@
     {
       "heading": "Page 2",
       "subheading_1": "Attorney-in-Fact Details",
-      "fields": {
+      "fields_1": {
         "cols": "3",
         "details": [
           {

@@ -1,0 +1,114 @@
+{
+  "form_code": "DEMO001",
+  "form_title": "Multiple Field Groups Demo",
+  "date_last_modified": "2026-01-27",
+  "language": "English",
+  "sections": [
+    {
+      "heading": "Employee Information",
+      "subheading_1": "Personal Details",
+      "fields_1": {
+        "cols": "2",
+        "details": [
+          {
+            "label": "First Name",
+            "type": "textbox",
+            "required": true
+          },
+          {
+            "label": "Last Name",
+            "type": "textbox",
+            "required": true
+          },
+          {
+            "label": "Email",
+            "type": "textbox",
+            "validation": "email",
+            "required": true
+          },
+          {
+            "label": "Phone",
+            "type": "textbox",
+            "validation": "phone"
+          }
+        ]
+      },
+      "subheading_2": "Address",
+      "fields_2": {
+        "cols": "1",
+        "details": [
+          {
+            "label": "Street Address",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "label": "City",
+            "type": "textbox",
+            "required": true
+          },
+          {
+            "label": "Postal Code",
+            "type": "textbox",
+            "required": true
+          }
+        ]
+      },
+      "subheading_3": "Employment Status",
+      "fields_3": {
+        "cols": "3",
+        "details": [
+          {
+            "label": "Department",
+            "type": "dropdown",
+            "required": true,
+            "options": {
+              "engineering": "Engineering",
+              "sales": "Sales",
+              "marketing": "Marketing",
+              "hr": "Human Resources"
+            }
+          },
+          {
+            "label": "Position",
+            "type": "textbox",
+            "required": true
+          },
+          {
+            "label": "Start Date",
+            "type": "date",
+            "required": true
+          },
+          {
+            "label": "Employment Type",
+            "type": "radio",
+            "options": {
+              "full_time": "Full Time",
+              "part_time": "Part Time",
+              "contract": "Contract"
+            }
+          },
+          {
+            "label": "Work Location",
+            "type": "dropdown",
+            "options": {
+              "office": "Office",
+              "remote": "Remote",
+              "hybrid": "Hybrid"
+            }
+          },
+          {
+            "label": "Benefits",
+            "type": "checkbox",
+            "options": {
+              "health": "Health Insurance",
+              "dental": "Dental Insurance",
+              "vision": "Vision Insurance",
+              "retirement": "401(k)"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

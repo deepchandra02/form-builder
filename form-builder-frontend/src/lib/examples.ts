@@ -13,7 +13,7 @@ export const POWER_OF_ATTORNEY_EXAMPLE: FormSchema = {
     {
       heading: "Page 1",
       subheading_1: "Principal Details",
-      fields: {
+      fields_1: {
         cols: "2",
         details: [
           {
@@ -76,8 +76,8 @@ export const POWER_OF_ATTORNEY_EXAMPLE: FormSchema = {
     {
       heading: "Page 2",
       subheading_1: "Attorney-in-Fact Details",
-      fields: {
-        cols: "3",
+      fields_1: {
+        "cols": "3",
         details: [
           {
             label: "Attorney Full Name",
