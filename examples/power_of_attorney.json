@@ -71,7 +71,7 @@
       "heading": "Page 2",
       "subheading_1": "Attorney-in-Fact Details",
       "fields": {
-        "cols": "1",
+        "cols": "3",
         "details": [
           {
             "label": "Attorney Full Name",
