@@ -20,9 +20,9 @@
             "type": "checkbox",
             "required": true,
             "options": {
-              "1": "Male",
-              "2": "Female",
-              "3": "Other"
+              "male": "Male",
+              "female": "Female",
+              "other": "Other"
             }
           },
           {
@@ -71,7 +71,7 @@
       "heading": "Page 2",
       "subheading_1": "Attorney-in-Fact Details",
       "fields": {
-        "cols": "2",
+        "cols": "1",
         "details": [
           {
             "label": "Attorney Full Name",
