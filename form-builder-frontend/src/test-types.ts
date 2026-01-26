@@ -8,11 +8,12 @@ import { POWER_OF_ATTORNEY_EXAMPLE } from '@/lib/examples';
 
 // Test 1: Runtime validation should pass
 console.log('Test 1: Validating Power of Attorney JSON...');
-try {
-  validateFormSchema(POWER_OF_ATTORNEY_EXAMPLE);
+const result = validateFormSchema(POWER_OF_ATTORNEY_EXAMPLE);
+if (result.valid) {
   console.log('✅ Power of Attorney JSON is valid');
-} catch (error) {
-  console.error('❌ Validation failed:', error);
+} else {
+  console.error('❌ Validation failed:');
+  result.errors.forEach(err => console.error(`  - ${err.path}: ${err.message}`));
 }
 
 // Test 2: TypeScript should accept the JSON as FormSchema
@@ -110,5 +111,52 @@ const validDate: FieldDefinition = {
   required: true,
 };
 console.log('✅ Valid date field created', validDate.label);
+
+// Test 6: Invalid schema validation
+console.log('\nTest 6: Testing invalid schema validation...');
+
+const invalidSchema = {
+  form_code: "TEST",
+  // Missing form_title
+  // Missing date_last_modified
+  // Missing language
+  sections: [
+    {
+      heading: "Test Section",
+      fields: {
+        cols: "2",
+        details: [
+          {
+            label: "Test Dropdown",
+            type: "dropdown",
+            // Missing required options for dropdown
+          },
+          {
+            label: "",  // Empty label
+            type: "invalid_type",  // Invalid type
+            required: "yes",  // Should be boolean
+          },
+          {
+            label: "Test Email",
+            type: "textbox",
+            validation: "url",  // Invalid validation rule
+          }
+        ]
+      }
+    }
+  ]
+};
+
+const invalidResult = validateFormSchema(invalidSchema);
+console.log(`Found ${invalidResult.errors.length} validation errors:`);
+invalidResult.errors.forEach(err => {
+  console.log(`  - ${err.path}: ${err.message}`);
+});
+
+if (invalidResult.errors.length > 0) {
+  console.log('✅ Invalid schema correctly rejected');
+} else {
+  console.error('❌ Invalid schema was incorrectly accepted');
+}
 
 console.log('\n✅ All tests passed!');
