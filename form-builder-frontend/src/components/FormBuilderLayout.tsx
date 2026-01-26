@@ -1,12 +1,13 @@
 import { useState, useMemo } from "react"
 import { Group, Panel, Separator } from "react-resizable-panels"
-import { GripVertical, AlertCircle } from "lucide-react"
+import { GripVertical, AlertCircle, WrapText } from "lucide-react"
 import { JsonEditor } from "@/components/JsonEditor"
 import { FormPreview } from "@/components/FormPreview"
 import { useDebounce } from "@/hooks/useDebounce"
 import { validateFormSchema } from "@/lib/types"
 import { generateFormHtml } from "@/lib/formGenerator"
 import { DEFAULT_JSON } from "@/lib/examples"
+import { Button } from "@/components/ui/button"
 
 /**
  * Main layout component for the form builder.
@@ -14,6 +15,7 @@ import { DEFAULT_JSON } from "@/lib/examples"
  */
 export function FormBuilderLayout() {
   const [jsonText, setJsonText] = useState(DEFAULT_JSON)
+  const [wordWrap, setWordWrap] = useState<'on' | 'off'>('on')
   const debouncedJson = useDebounce(jsonText, 300)
 
   // Derive preview HTML and error state from debounced JSON
@@ -51,10 +53,19 @@ export function FormBuilderLayout() {
         <Group orientation="horizontal">
           <Panel defaultSize={50} minSize={30}>
             <div className="h-full flex flex-col min-w-0">
-              <div className="h-12 px-4 flex items-center border-b bg-muted/30">
+              <div className="h-12 px-4 flex items-center justify-between border-b bg-muted/30">
                 <h2 className="text-sm font-medium text-muted-foreground">
                   Schema (JSON)
                 </h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setWordWrap(wordWrap === 'on' ? 'off' : 'on')}
+                  className="h-8 w-8 p-0 cursor-pointer"
+                  title="Toggle Word Wrap"
+                >
+                  <WrapText className={`h-4 w-4 ${wordWrap === 'on' ? 'text-foreground' : 'text-muted-foreground'}`} />
+                </Button>
               </div>
 
               <div className="flex-1 p-4 flex flex-col gap-2 overflow-hidden min-w-0">
@@ -64,6 +75,7 @@ export function FormBuilderLayout() {
                       value={jsonText}
                       onChange={(value) => setJsonText(value || "")}
                       className="h-full w-full"
+                      wordWrap={wordWrap}
                     />
                   </div>
                 </div>

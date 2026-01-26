@@ -14,6 +14,7 @@ interface JsonEditorProps {
   height?: string | number
   readOnly?: boolean
   onValidationError?: (errors: EditorMarker[]) => void
+  wordWrap?: 'on' | 'off'
 }
 
 /**
@@ -26,6 +27,7 @@ export function JsonEditor({
   height = "100%",
   readOnly = false,
   onValidationError,
+  wordWrap = 'on',
 }: JsonEditorProps) {
   const theme = useTheme()
 
@@ -58,7 +60,7 @@ export function JsonEditor({
           automaticLayout: true,
           minimap: { enabled: false },
           scrollBeyondLastLine: false,
-          wordWrap: "on",
+          wordWrap,
           lineNumbers: "on",
           fontSize: 14,
           tabSize: 2,
