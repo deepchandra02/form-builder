@@ -2,6 +2,7 @@ import { useState } from "react"
 import { Group, Panel, Separator } from "react-resizable-panels"
 import { GripVertical } from "lucide-react"
 import { JsonEditor } from "@/components/JsonEditor"
+import { FormPreview } from "@/components/FormPreview"
 
 const DEFAULT_JSON = `{
   "form_code": "SAMPLE_FORM",
@@ -11,6 +12,11 @@ const DEFAULT_JSON = `{
 
 export function FormBuilderLayout() {
   const [jsonValue, setJsonValue] = useState(DEFAULT_JSON)
+  const [previewHtml] = useState("")
+
+  // TODO: Connect JSON editor changes to HTML generation
+  // When form schema is parsed, use setPreviewHtml to update the preview
+  void jsonValue
 
   return (
     <div className="h-screen w-full">
@@ -33,10 +39,7 @@ export function FormBuilderLayout() {
 
         <Panel defaultSize={50} minSize={30}>
           <div className="h-full p-4">
-            {/* Placeholder for Preview */}
-            <div className="border border-dashed h-full flex items-center justify-center">
-              Preview Panel
-            </div>
+            <FormPreview html={previewHtml} className="h-full border" />
           </div>
         </Panel>
       </Group>
