@@ -1,16 +1,27 @@
+import { useState } from "react"
 import { Group, Panel, Separator } from "react-resizable-panels"
 import { GripVertical } from "lucide-react"
+import { JsonEditor } from "@/components/JsonEditor"
+
+const DEFAULT_JSON = `{
+  "form_code": "SAMPLE_FORM",
+  "form_title": "Sample Form",
+  "sections": []
+}`
 
 export function FormBuilderLayout() {
+  const [jsonValue, setJsonValue] = useState(DEFAULT_JSON)
+
   return (
     <div className="h-screen w-full">
       <Group orientation="horizontal">
         <Panel defaultSize={50} minSize={30}>
           <div className="h-full p-4">
-            {/* Placeholder for Editor */}
-            <div className="border border-dashed h-full flex items-center justify-center">
-              Editor Panel
-            </div>
+            <JsonEditor
+              value={jsonValue}
+              onChange={(value) => setJsonValue(value || "")}
+              className="h-full"
+            />
           </div>
         </Panel>
 
