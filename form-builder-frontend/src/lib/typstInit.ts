@@ -3,11 +3,13 @@ import wasmUrl from '@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compi
 
 let initialized = false;
 
-export async function initTypst(): Promise<void> {
+export function initTypst(): void {
   if (initialized) return;
 
-  await $typst.setCompilerInitOptions({
-    getModule: () => WebAssembly.compileStreaming(fetch(wasmUrl))
+  // Set up compiler init options with the WASM URL
+  // The actual WASM loading happens lazily when pdf() or other compile methods are called
+  $typst.setCompilerInitOptions({
+    getModule: () => wasmUrl
   });
 
   initialized = true;

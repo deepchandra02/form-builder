@@ -28,7 +28,9 @@ export function sanitizeName(label: string): string {
 
 /**
  * Escapes special Typst characters in text.
- * Characters that need escaping: # * _ @ $ \ [ ] < >
+ * Characters that need escaping in markup mode: # * _ @ $ \
+ * Note: [ ] < > are handled differently - we use Unicode escapes to avoid
+ * confusing the bracket matching in content blocks.
  */
 export function escapeTypst(text: string): string {
   return text
@@ -38,8 +40,8 @@ export function escapeTypst(text: string): string {
     .replace(/_/g, '\\_')
     .replace(/@/g, '\\@')
     .replace(/\$/g, '\\$')
-    .replace(/\[/g, '\\[')
-    .replace(/\]/g, '\\]')
+    .replace(/\[/g, '#sym.bracket.l')
+    .replace(/\]/g, '#sym.bracket.r')
     .replace(/</g, '\\<')
     .replace(/>/g, '\\>');
 }
