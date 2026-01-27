@@ -1,4 +1,4 @@
-import type { FieldDefinition, FieldsConfig, Section } from './types';
+import type { FieldDefinition, FieldsConfig, FormSchema, Section } from './types';
 
 /**
  * Indents each line of a text block by a specified number of spaces.
@@ -19,7 +19,7 @@ function indent(text: string, spaces: number): string {
  * @param label - The label text to sanitize
  * @returns A sanitized name string
  */
-function sanitizeName(label: string): string {
+export function sanitizeName(label: string): string {
   return label
     .toLowerCase()
     .replace(/\s+/g, '_')
@@ -30,7 +30,7 @@ function sanitizeName(label: string): string {
  * Escapes special Typst characters in text.
  * Characters that need escaping: # * _ @ $ \ [ ] < >
  */
-function escapeTypst(text: string): string {
+export function escapeTypst(text: string): string {
   return text
     .replace(/\\/g, '\\\\')
     .replace(/#/g, '\\#')
@@ -190,4 +190,74 @@ export function generateSectionTypst(
   }
 
   return output;
+}
+
+/**
+ * Generates a complete Typst document for a form schema.
+ *
+ * @param schema - The complete form schema
+ * @returns Complete Typst document string
+ */
+export function generateFormTypst(schema: FormSchema): string {
+  const parts: string[] = [];
+
+  // Document setup
+  parts.push(`// Document setup
+#set page(
+  paper: "a4",
+  margin: (top: 2cm, bottom: 2cm, left: 2cm, right: 2cm)
+)
+#set text(font: "Linux Libertine", size: 11pt)
+#set heading(numbering: none)
+
+// Custom styling
+#show heading.where(level: 1): it => [
+  #set text(size: 24pt, weight: "bold")
+  #align(center)[#it.body]
+]
+
+#show heading.where(level: 2): it => [
+  #set text(size: 14pt, weight: "bold")
+  #v(0.8em)
+  #it.body
+  #v(0.3em)
+  #line(length: 100%, stroke: 0.5pt + gray)
+]
+
+#show heading.where(level: 3): it => [
+  #set text(size: 10pt, weight: "bold", fill: gray)
+  #v(0.5em)
+  #upper(it.body)
+  #v(0.3em)
+]`);
+
+  // Form title
+  parts.push(`// Form title
+= ${escapeTypst(schema.form_title)}
+
+#align(center)[
+  #text(size: 10pt, fill: gray)[Form Code: ${escapeTypst(schema.form_code)}]
+]
+
+#v(1em)`);
+
+  // Sections
+  if (schema.sections.length > 0) {
+    parts.push('// Sections');
+    schema.sections.forEach((section, index) => {
+      parts.push(generateSectionTypst(section, index));
+    });
+  }
+
+  // Footer with date
+  const generatedDate = new Date().toLocaleDateString();
+  parts.push(`// Footer with date
+#v(1fr)
+#line(length: 100%, stroke: 0.5pt + gray)
+#text(size: 9pt, fill: gray)[
+  Generated: ${generatedDate} |
+  Language: ${escapeTypst(schema.language)}
+]`);
+
+  return parts.join('\n\n');
 }
