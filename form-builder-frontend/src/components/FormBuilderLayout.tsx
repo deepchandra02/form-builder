@@ -12,6 +12,8 @@ import { generateFormHtml } from "@/lib/formGenerator"
 import { exportFormToPdfTypst } from "@/lib/typstPdfExport"
 import { DEFAULT_JSON } from "@/lib/examples"
 import { Button } from "@/components/ui/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { toast } from "sonner"
 
 /**
  * Add dummy values to all fields in a form schema.
@@ -81,10 +83,18 @@ export function FormBuilderLayout() {
       const newTheme = editorTheme === 'light' ? 'vs-dark' : 'light'
       monacoEditor.updateOptions({ theme: newTheme })
     }
+    toast(editorTheme === 'light' ? "Dark mode enabled" : "Light mode enabled")
+  }
+
+  const handleToggleWordWrap = () => {
+    const newValue = wordWrap === 'on' ? 'off' : 'on'
+    setWordWrap(newValue)
+    toast(newValue === 'on' ? "Word wrap enabled" : "Word wrap disabled")
   }
 
   const handleCopyJson = async () => {
     await navigator.clipboard.writeText(jsonText)
+    toast("Copied to clipboard")
   }
 
   const handleDownloadJson = () => {
@@ -95,6 +105,7 @@ export function FormBuilderLayout() {
     a.download = `${parsedSchema?.form_code || 'form'}.json`
     a.click()
     URL.revokeObjectURL(url)
+    toast("JSON downloaded")
   }
 
   const handleFillDummyValues = () => {
@@ -104,6 +115,7 @@ export function FormBuilderLayout() {
       if (validation.valid && validation.schema) {
         const withValues = addDummyValues(validation.schema)
         setJsonText(JSON.stringify(withValues, null, 2))
+        toast("Dummy values added")
       }
     } catch {
       // Invalid JSON, do nothing
@@ -171,51 +183,71 @@ export function FormBuilderLayout() {
                   Schema (JSON)
                 </h2>
                 <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleFillDummyValues}
-                    className="h-7 w-7 cursor-pointer"
-                    title="Fill dummy values"
-                  >
-                    <Wand2 className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleToggleTheme}
-                    className="h-7 w-7 cursor-pointer"
-                    title={`Switch to ${editorTheme === 'light' ? 'dark' : 'light'} mode`}
-                  >
-                    {editorTheme === 'light' ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setWordWrap(wordWrap === 'on' ? 'off' : 'on')}
-                    className="h-7 w-7 cursor-pointer"
-                    title={wordWrap === 'on' ? 'Disable word wrap' : 'Enable word wrap'}
-                  >
-                    <WrapText className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleCopyJson}
-                    className="h-7 w-7 cursor-pointer"
-                    title="Copy JSON"
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleDownloadJson}
-                    className="h-7 w-7 cursor-pointer"
-                    title="Download JSON"
-                  >
-                    <FileJson className="h-3.5 w-3.5" />
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleFillDummyValues}
+                        className="h-7 w-7 cursor-pointer"
+                      >
+                        <Wand2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Fill dummy values</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleToggleTheme}
+                        className="h-7 w-7 cursor-pointer"
+                      >
+                        {editorTheme === 'light' ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{editorTheme === 'light' ? 'Dark mode' : 'Light mode'}</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleToggleWordWrap}
+                        className="h-7 w-7 cursor-pointer"
+                      >
+                        <WrapText className="h-3.5 w-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{wordWrap === 'on' ? 'Disable word wrap' : 'Enable word wrap'}</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleCopyJson}
+                        className="h-7 w-7 cursor-pointer"
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Copy JSON</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleDownloadJson}
+                        className="h-7 w-7 cursor-pointer"
+                      >
+                        <FileJson className="h-3.5 w-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Download JSON</TooltipContent>
+                  </Tooltip>
                 </div>
               </div>
 
