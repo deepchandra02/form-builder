@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react"
 import { Group, Panel, Separator } from "react-resizable-panels"
-import { GripVertical, AlertCircle, WrapText, Sun, Moon, Wand2, Download, Loader2 } from "lucide-react"
+import { GripVertical, AlertCircle, WrapText, Sun, Moon, Wand2, Download, Loader2, Copy, FileJson } from "lucide-react"
 import type { editor } from "monaco-editor"
 import { JsonEditor } from "@/components/JsonEditor"
 import { FormPreview } from "@/components/FormPreview"
@@ -83,6 +83,20 @@ export function FormBuilderLayout() {
     }
   }
 
+  const handleCopyJson = async () => {
+    await navigator.clipboard.writeText(jsonText)
+  }
+
+  const handleDownloadJson = () => {
+    const blob = new Blob([jsonText], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${parsedSchema?.form_code || 'form'}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   const handleFillDummyValues = () => {
     try {
       const parsed = JSON.parse(jsonText)
@@ -161,7 +175,7 @@ export function FormBuilderLayout() {
                     variant="ghost"
                     size="icon"
                     onClick={handleFillDummyValues}
-                    className="h-7 w-7"
+                    className="h-7 w-7 cursor-pointer"
                     title="Fill dummy values"
                   >
                     <Wand2 className="h-3.5 w-3.5" />
@@ -170,7 +184,7 @@ export function FormBuilderLayout() {
                     variant="ghost"
                     size="icon"
                     onClick={handleToggleTheme}
-                    className="h-7 w-7"
+                    className="h-7 w-7 cursor-pointer"
                     title={`Switch to ${editorTheme === 'light' ? 'dark' : 'light'} mode`}
                   >
                     {editorTheme === 'light' ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
@@ -179,10 +193,28 @@ export function FormBuilderLayout() {
                     variant="ghost"
                     size="icon"
                     onClick={() => setWordWrap(wordWrap === 'on' ? 'off' : 'on')}
-                    className="h-7 w-7"
+                    className="h-7 w-7 cursor-pointer"
                     title={wordWrap === 'on' ? 'Disable word wrap' : 'Enable word wrap'}
                   >
                     <WrapText className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleCopyJson}
+                    className="h-7 w-7 cursor-pointer"
+                    title="Copy JSON"
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleDownloadJson}
+                    className="h-7 w-7 cursor-pointer"
+                    title="Download JSON"
+                  >
+                    <FileJson className="h-3.5 w-3.5" />
                   </Button>
                 </div>
               </div>
@@ -227,6 +259,7 @@ export function FormBuilderLayout() {
                   size="sm"
                   onClick={handleExportPdf}
                   disabled={!parsedSchema || isExportingPdf}
+                  className="cursor-pointer"
                   title="Export as PDF"
                 >
                   {isExportingPdf ? (

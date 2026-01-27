@@ -59,6 +59,7 @@ export function generateFieldTypst(
 ): string {
   const escapedLabel = escapeTypst(field.label);
   const requiredMark = field.required ? ' #text(fill: red)[\\*]' : '';
+  const value = field.value;
 
   switch (field.type) {
     case 'textbox': {
@@ -69,20 +70,33 @@ export function generateFieldTypst(
         validationHint = ' #text(fill: gray, size: 9pt, "(phone)")';
       }
 
+      if (value) {
+        return `*${escapedLabel}*${requiredMark}${validationHint} \\\n${escapeTypst(value)}\n#line(length: 100%, stroke: 0.5pt + black)`;
+      }
       return `*${escapedLabel}*${requiredMark}${validationHint} \\\n#line(length: 100%, stroke: 0.5pt + black)`;
     }
 
     case 'textarea': {
+      if (value) {
+        return `*${escapedLabel}*${requiredMark} \\\n#rect(width: 100%, stroke: 0.5pt + black, inset: 8pt)[${escapeTypst(value)}]`;
+      }
       return `*${escapedLabel}*${requiredMark} \\\n#rect(width: 100%, height: 50pt, stroke: 0.5pt + black)`;
     }
 
     case 'date': {
+      if (value) {
+        return `*${escapedLabel}*${requiredMark} \\\n${escapeTypst(value)}\n#line(length: 100%, stroke: 0.5pt + black)`;
+      }
       return `*${escapedLabel}*${requiredMark} \\\n#text(fill: gray, "DD / MM / YYYY")\n#line(length: 100%, stroke: 0.5pt + black)`;
     }
 
     case 'dropdown': {
       if (!field.options) {
         return `*${escapedLabel}*${requiredMark} \\\n#text(fill: gray, "No options")`;
+      }
+
+      if (value && field.options[value]) {
+        return `*${escapedLabel}*${requiredMark} \\\n${escapeTypst(field.options[value])}\n#line(length: 100%, stroke: 0.5pt + black)`;
       }
 
       const optionLabels = Object.values(field.options).map(escapeTypst);
@@ -96,12 +110,16 @@ export function generateFieldTypst(
         return `*${escapedLabel}*${requiredMark} \\\n#text(fill: gray, "No options")`;
       }
 
-      const options = Object.entries(field.options).map(([_key, label]) => {
+      const radioOptions = Object.entries(field.options).map(([key, label]) => {
         const escapedOptionLabel = escapeTypst(label);
+        const isSelected = value === key;
+        if (isSelected) {
+          return `#circle(radius: 4pt, fill: black, stroke: 0.5pt) #h(2pt) ${escapedOptionLabel}`;
+        }
         return `#circle(radius: 4pt, stroke: 0.5pt) #h(2pt) ${escapedOptionLabel}`;
       });
 
-      return `*${escapedLabel}*${requiredMark} \\\n${options.join(' #h(12pt) ')}`;
+      return `*${escapedLabel}*${requiredMark} \\\n${radioOptions.join(' #h(12pt) ')}`;
     }
 
     case 'checkbox': {
@@ -109,12 +127,17 @@ export function generateFieldTypst(
         return `*${escapedLabel}*${requiredMark} \\\n#text(fill: gray, "No options")`;
       }
 
-      const options = Object.entries(field.options).map(([_key, label]) => {
+      const selectedKeys = value ? value.split(',') : [];
+      const checkboxOptions = Object.entries(field.options).map(([key, label]) => {
         const escapedOptionLabel = escapeTypst(label);
+        const isChecked = selectedKeys.includes(key);
+        if (isChecked) {
+          return `#rect(width: 8pt, height: 8pt, fill: black, stroke: 0.5pt) #h(2pt) ${escapedOptionLabel}`;
+        }
         return `#rect(width: 8pt, height: 8pt, stroke: 0.5pt) #h(2pt) ${escapedOptionLabel}`;
       });
 
-      return `*${escapedLabel}*${requiredMark} \\\n${options.join(' #h(12pt) ')}`;
+      return `*${escapedLabel}*${requiredMark} \\\n${checkboxOptions.join(' #h(12pt) ')}`;
     }
 
     default:
