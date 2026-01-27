@@ -1,59 +1,55 @@
 # Form Builder
 
-A Python script that parses JSON schemas and generates sectioned HTML forms.
-
-## Description
-
-Form Builder converts JSON form definitions into structured HTML forms with support for multiple field types, sections, and validation attributes. This is an MVP focused on clean structure and extensibility.
+A visual JSON-to-form builder with live preview and PDF export.
 
 ## Features
 
-- Converts JSON form definitions to HTML
-- Supports multiple field types:
-  - Text input (textbox)
-  - Text area (textarea)
-  - Date picker (date)
-  - Dropdown/select (dropdown)
-  - Radio buttons (radio)
-  - Checkboxes (checkbox)
-- Organizes forms into sections with headings and subheadings
-- Handles required fields and validation attributes
-- Multi-column layout support for form fields
+- **Live Editor**: Monaco editor with syntax highlighting and word wrap toggle
+- **Instant Preview**: Real-time form preview as you edit JSON
+- **6 Field Types**: textbox, textarea, date, dropdown, radio, checkbox
+- **Multi-column Layouts**: Configure 1-3 columns per field group
+- **Dark Mode**: Toggle between light and dark themes
+- **PDF Export**: Export forms to PDF using Typst
+- **Field Numbering**: Automatic field numbering in sections
+- **Form Validation**: JSON schema validation with helpful error messages
+- **Default Values**: Pre-fill fields with initial values
 
-## Project Status
+## Quick Start
 
-**MVP / Initial Development**
+```bash
+cd form-builder-frontend
+npm install
+npm run dev
+```
 
-This is an initial implementation focusing on core functionality. Future enhancements may include:
-- Frontend framework integration
-- Client-side validation
-- Advanced styling and theming
-- Dynamic form behavior
+Open http://localhost:5173 in your browser.
 
-## Usage
-
-(To be added in later tasks)
-
-## Input Format
-
-The tool accepts JSON files with the following structure:
+## JSON Schema Format
 
 ```json
 {
-  "form_code": "FORM_CODE",
-  "form_title": "Form Title",
+  "form_code": "POA_2024",
+  "form_title": "Power of Attorney",
+  "date_last_modified": "2024-01-26",
+  "language": "en",
   "sections": [
     {
-      "heading": "Section Heading",
-      "subheading_1": "Section Subheading",
-      "fields": {
+      "heading": "Personal Information",
+      "subheading_1": "Contact Details",
+      "fields_1": {
         "cols": "2",
         "details": [
           {
-            "label": "Field Label",
-            "type": "textbox|textarea|date|dropdown|radio|checkbox",
+            "label": "Full Name",
+            "type": "textbox",
             "required": true,
-            "options": {...}
+            "value": "John Doe"
+          },
+          {
+            "label": "Email",
+            "type": "textbox",
+            "validation": "email",
+            "required": true
           }
         ]
       }
@@ -62,25 +58,27 @@ The tool accepts JSON files with the following structure:
 }
 ```
 
-## Example Schemas
+### Field Types
 
-The `examples/` directory contains sample form schemas demonstrating the tool's capabilities:
+- `textbox` - Single-line text input
+- `textarea` - Multi-line text input
+- `date` - Date picker
+- `dropdown` - Select dropdown (requires `options`)
+- `radio` - Radio button group (requires `options`)
+- `checkbox` - Checkbox group (requires `options`)
 
-- **power_of_attorney.json**: A two-page Power of Attorney form that demonstrates:
-  - All supported field types (textbox, textarea, date, dropdown, radio, checkbox)
-  - Required fields and validation attributes (phone, email)
-  - Multi-column layout (2 columns)
-  - Section organization with headings and subheadings
+### Validation Rules
 
-## Output
+- `email` - Email format validation
+- `phone` - Phone number validation
 
-HTML form files are generated in the `output/` directory.
+## Example Forms
 
-## Requirements
+The editor loads with a Power of Attorney example. Find more examples in `examples/`:
 
-- Python 3.6+
-- No external dependencies (uses only Python standard library)
+- `power_of_attorney.json` - Two-page legal form with all field types
+- `multiple_field_groups_demo.json` - Multi-section form with numbered field groups
 
-## License
+## Tech Stack
 
-(To be determined)
+React + TypeScript + Vite + TailwindCSS + shadcn/ui + Monaco Editor + Typst
