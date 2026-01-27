@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react"
 import { Group, Panel, Separator } from "react-resizable-panels"
-import { GripVertical, AlertCircle, WrapText, Sun, Moon, Wand2 } from "lucide-react"
+import { GripVertical, AlertCircle, WrapText, Sun, Moon, Wand2, Download, Loader2 } from "lucide-react"
 import type { editor } from "monaco-editor"
 import { JsonEditor } from "@/components/JsonEditor"
 import { FormPreview } from "@/components/FormPreview"
@@ -9,6 +9,7 @@ import { useEditorTheme } from "@/hooks/useEditorTheme"
 import { validateFormSchema } from "@/lib/types"
 import type { FormSchema, FieldDefinition } from "@/lib/types"
 import { generateFormHtml } from "@/lib/formGenerator"
+import { exportFormToPdf } from "@/lib/pdfExport"
 import { DEFAULT_JSON } from "@/lib/examples"
 import { Button } from "@/components/ui/button"
 
@@ -69,6 +70,7 @@ export function FormBuilderLayout() {
   const [jsonText, setJsonText] = useState(DEFAULT_JSON)
   const [wordWrap, setWordWrap] = useState<'on' | 'off'>('on')
   const [monacoEditor, setMonacoEditor] = useState<editor.IStandaloneCodeEditor | null>(null)
+  const [isExportingPdf, setIsExportingPdf] = useState(false)
   const { editorTheme, toggleEditorTheme, monacoTheme } = useEditorTheme()
   const debouncedJson = useDebounce(jsonText, 300)
 
@@ -90,6 +92,24 @@ export function FormBuilderLayout() {
       }
     } catch {
       // Invalid JSON, do nothing
+    }
+  }
+
+  const handleExportPdf = async () => {
+    if (!previewHtml || isExportingPdf) return
+
+    setIsExportingPdf(true)
+    try {
+      const parsed = JSON.parse(debouncedJson)
+      const validation = validateFormSchema(parsed)
+      await exportFormToPdf(previewHtml, {
+        formCode: validation.schema?.form_code,
+        formTitle: validation.schema?.form_title,
+      })
+    } catch (err) {
+      console.error('Failed to export PDF:', err)
+    } finally {
+      setIsExportingPdf(false)
     }
   }
 
@@ -194,10 +214,24 @@ export function FormBuilderLayout() {
 
           <Panel defaultSize={50} minSize={30}>
             <div className="h-full flex flex-col">
-              <div className="h-12 px-4 flex items-center border-b bg-muted/30">
+              <div className="h-12 px-4 flex items-center justify-between border-b bg-muted/30">
                 <h2 className="text-sm font-medium text-muted-foreground">
                   Preview
                 </h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleExportPdf}
+                  disabled={!previewHtml || isExportingPdf}
+                  title="Export as PDF"
+                >
+                  {isExportingPdf ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4 mr-2" />
+                  )}
+                  Export PDF
+                </Button>
               </div>
 
               <div className="flex-1 p-4 overflow-auto">
