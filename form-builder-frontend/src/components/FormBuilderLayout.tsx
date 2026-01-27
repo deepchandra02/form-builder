@@ -9,7 +9,7 @@ import { useEditorTheme } from "@/hooks/useEditorTheme"
 import { validateFormSchema } from "@/lib/types"
 import type { FormSchema, FieldDefinition } from "@/lib/types"
 import { generateFormHtml } from "@/lib/formGenerator"
-import { exportFormToPdf } from "@/lib/pdfExport"
+import { exportFormToPdfTypst } from "@/lib/typstPdfExport"
 import { DEFAULT_JSON } from "@/lib/examples"
 import { Button } from "@/components/ui/button"
 
@@ -71,6 +71,7 @@ export function FormBuilderLayout() {
   const [wordWrap, setWordWrap] = useState<'on' | 'off'>('on')
   const [monacoEditor, setMonacoEditor] = useState<editor.IStandaloneCodeEditor | null>(null)
   const [isExportingPdf, setIsExportingPdf] = useState(false)
+  const [exportStatus, setExportStatus] = useState<string>('')
   const { editorTheme, toggleEditorTheme, monacoTheme } = useEditorTheme()
   const debouncedJson = useDebounce(jsonText, 300)
 
@@ -96,25 +97,25 @@ export function FormBuilderLayout() {
   }
 
   const handleExportPdf = async () => {
-    if (!previewHtml || isExportingPdf) return
+    if (!parsedSchema || isExportingPdf) return
 
     setIsExportingPdf(true)
+    setExportStatus('Starting export...')
+
     try {
-      const parsed = JSON.parse(debouncedJson)
-      const validation = validateFormSchema(parsed)
-      await exportFormToPdf(previewHtml, {
-        formCode: validation.schema?.form_code,
-        formTitle: validation.schema?.form_title,
+      await exportFormToPdfTypst(parsedSchema, (status) => {
+        setExportStatus(status)
       })
     } catch (err) {
       console.error('Failed to export PDF:', err)
     } finally {
       setIsExportingPdf(false)
+      setExportStatus('')
     }
   }
 
-  // Derive preview HTML and error state from debounced JSON
-  const { previewHtml, error } = useMemo(() => {
+  // Derive preview HTML, parsed schema, and error state from debounced JSON
+  const { previewHtml, parsedSchema, error } = useMemo(() => {
     try {
       const parsed = JSON.parse(debouncedJson)
       const validation = validateFormSchema(parsed)
@@ -122,17 +123,20 @@ export function FormBuilderLayout() {
       if (validation.valid && validation.schema) {
         return {
           previewHtml: generateFormHtml(validation.schema),
+          parsedSchema: validation.schema,
           error: null
         }
       } else {
         return {
           previewHtml: "",
+          parsedSchema: null,
           error: validation.errors.map((e) => e.message).join(", ")
         }
       }
     } catch {
       return {
         previewHtml: "",
+        parsedSchema: null,
         error: "Invalid JSON syntax"
       }
     }
@@ -222,15 +226,20 @@ export function FormBuilderLayout() {
                   variant="ghost"
                   size="sm"
                   onClick={handleExportPdf}
-                  disabled={!previewHtml || isExportingPdf}
+                  disabled={!parsedSchema || isExportingPdf}
                   title="Export as PDF"
                 >
                   {isExportingPdf ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      {exportStatus || 'Exporting...'}
+                    </>
                   ) : (
-                    <Download className="h-4 w-4 mr-2" />
+                    <>
+                      <Download className="h-4 w-4 mr-2" />
+                      Export PDF
+                    </>
                   )}
-                  Export PDF
                 </Button>
               </div>
 
