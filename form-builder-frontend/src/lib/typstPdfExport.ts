@@ -37,24 +37,12 @@ export async function exportFormToPdfTypst(
     onProgress?.('Generating document...');
     const typstContent = generateFormTypst(schema);
 
-    // Debug: log the generated Typst content
-    console.log('Generated Typst content:', typstContent);
-
-    // Test with minimal content first to verify WASM works
-    const testContent = `
-#set page(paper: "a4", margin: 2cm)
-#set text(size: 11pt)
-
-= ${schema.form_title.replace(/[#*_@$\\[\]<>]/g, '')}
-
-This is a test PDF generated from the form builder.
-
-Form Code: ${schema.form_code.replace(/[#*_@$\\[\]<>]/g, '')}
-`;
+    // Log the generated Typst content for debugging if needed
+    console.debug('Generated Typst content:', typstContent);
 
     // Compile Typst to PDF
     onProgress?.('Compiling PDF...');
-    const pdfData = await $typst.pdf({ mainContent: testContent });
+    const pdfData = await $typst.pdf({ mainContent: typstContent });
 
     if (!pdfData) {
       throw new Error('Failed to generate PDF: no data returned from Typst compiler');

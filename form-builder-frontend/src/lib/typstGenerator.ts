@@ -27,23 +27,23 @@ export function sanitizeName(label: string): string {
 }
 
 /**
- * Escapes special Typst characters in text.
- * Characters that need escaping in markup mode: # * _ @ $ \
- * Note: [ ] < > are handled differently - we use Unicode escapes to avoid
- * confusing the bracket matching in content blocks.
+ * Escapes special Typst characters in text for use in content blocks.
+ * Uses a simple approach: escape the most critical characters and remove problematic ones.
  */
 export function escapeTypst(text: string): string {
   return text
-    .replace(/\\/g, '\\\\')
+    // Remove backslashes to avoid escape sequence issues
+    .replace(/\\/g, '')
+    // Escape characters that have special meaning in Typst markup
     .replace(/#/g, '\\#')
     .replace(/\*/g, '\\*')
     .replace(/_/g, '\\_')
     .replace(/@/g, '\\@')
     .replace(/\$/g, '\\$')
-    .replace(/\[/g, '#sym.bracket.l')
-    .replace(/\]/g, '#sym.bracket.r')
-    .replace(/</g, '\\<')
-    .replace(/>/g, '\\>');
+    // Remove brackets entirely to avoid delimiter matching issues
+    .replace(/[\[\]]/g, '')
+    // Remove angle brackets
+    .replace(/[<>]/g, '');
 }
 
 /**
@@ -58,90 +58,67 @@ export function generateFieldTypst(
   _fieldName: string
 ): string {
   const escapedLabel = escapeTypst(field.label);
-  const requiredMark = field.required ? ' #text(fill: red)[*]' : '';
+  const requiredMark = field.required ? ' #text(fill: red)[\\*]' : '';
 
   switch (field.type) {
     case 'textbox': {
       let validationHint = '';
       if (field.validation === 'email') {
-        validationHint = ' #text(fill: gray, size: 9pt)[(email)]';
+        validationHint = ' #text(fill: gray, size: 9pt, "(email)")';
       } else if (field.validation === 'phone') {
-        validationHint = ' #text(fill: gray, size: 9pt)[(phone)]';
+        validationHint = ' #text(fill: gray, size: 9pt, "(phone)")';
       }
 
-      const valueContent = field.value
-        ? `[#text(fill: gray)[${escapeTypst(field.value)}]#v(14pt)]`
-        : '[#v(14pt)]';
-
-      return `*${escapedLabel}*${requiredMark}${validationHint} \\\n#box(width: 100%, stroke: (bottom: 0.5pt + black))${valueContent}`;
+      return `*${escapedLabel}*${requiredMark}${validationHint} \\\n#line(length: 100%, stroke: 0.5pt + black)`;
     }
 
     case 'textarea': {
-      const valueContent = field.value
-        ? `[#text(fill: gray)[${escapeTypst(field.value)}]]`
-        : '[]';
-
-      return `*${escapedLabel}*${requiredMark} \\\n#block(width: 100%, height: 60pt, stroke: 0.5pt + black, inset: 4pt)${valueContent}`;
+      return `*${escapedLabel}*${requiredMark} \\\n#rect(width: 100%, height: 50pt, stroke: 0.5pt + black)`;
     }
 
     case 'date': {
-      const valueContent = field.value
-        ? `[\n  #text(fill: gray)[${escapeTypst(field.value)}]\n]`
-        : '[\n  #text(fill: gray)[DD / MM / YYYY]\n]';
-
-      return `*${escapedLabel}*${requiredMark} \\\n#box(width: 100%, stroke: (bottom: 0.5pt + black))${valueContent}`;
+      return `*${escapedLabel}*${requiredMark} \\\n#text(fill: gray, "DD / MM / YYYY")\n#line(length: 100%, stroke: 0.5pt + black)`;
     }
 
     case 'dropdown': {
       if (!field.options) {
-        return `*${escapedLabel}*${requiredMark} \\\n#box(width: 100%, stroke: (bottom: 0.5pt + black))[\n  #text(fill: gray)[No options available]\n]`;
+        return `*${escapedLabel}*${requiredMark} \\\n#text(fill: gray, "No options")`;
       }
 
       const optionLabels = Object.values(field.options).map(escapeTypst);
-      const displayText = field.value
-        ? escapeTypst(field.options[field.value] || field.value)
-        : `Select: ${optionLabels.join(', ')}`;
+      const displayText = `Select: ${optionLabels.join(', ')}`;
 
-      return `*${escapedLabel}*${requiredMark} \\\n#box(width: 100%, stroke: (bottom: 0.5pt + black))[\n  #text(fill: gray)[${displayText}]\n]`;
+      return `*${escapedLabel}*${requiredMark} \\\n#text(fill: gray, "${displayText}")\n#line(length: 100%, stroke: 0.5pt + black)`;
     }
 
     case 'radio': {
       if (!field.options) {
-        return `*${escapedLabel}*${requiredMark} \\\n#text(fill: gray)[No options available]`;
+        return `*${escapedLabel}*${requiredMark} \\\n#text(fill: gray, "No options")`;
       }
 
-      const options = Object.entries(field.options).map(([key, label]) => {
+      const options = Object.entries(field.options).map(([_key, label]) => {
         const escapedOptionLabel = escapeTypst(label);
-        const isSelected = field.value === key;
-        const circle = isSelected
-          ? '#circle(radius: 4pt, stroke: 0.5pt, fill: black)'
-          : '#circle(radius: 4pt, stroke: 0.5pt)';
-        return `[${circle} ${escapedOptionLabel}]`;
+        return `#circle(radius: 4pt, stroke: 0.5pt) #h(2pt) ${escapedOptionLabel}`;
       });
 
-      return `*${escapedLabel}*${requiredMark} \\\n#stack(dir: ltr, spacing: 12pt,\n  ${options.join(',\n  ')}\n)`;
+      return `*${escapedLabel}*${requiredMark} \\\n${options.join(' #h(12pt) ')}`;
     }
 
     case 'checkbox': {
       if (!field.options) {
-        return `*${escapedLabel}*${requiredMark} \\\n#text(fill: gray)[No options available]`;
+        return `*${escapedLabel}*${requiredMark} \\\n#text(fill: gray, "No options")`;
       }
 
-      const selectedValues = field.value ? field.value.split(',').map(v => v.trim()) : [];
-      const options = Object.entries(field.options).map(([key, label]) => {
+      const options = Object.entries(field.options).map(([_key, label]) => {
         const escapedOptionLabel = escapeTypst(label);
-        const isSelected = selectedValues.includes(key);
-        const box = isSelected
-          ? '#box(width: 10pt, height: 10pt, stroke: 0.5pt, fill: black)'
-          : '#box(width: 10pt, height: 10pt, stroke: 0.5pt)';
-        return `[${box} ${escapedOptionLabel}]`;
+        return `#rect(width: 8pt, height: 8pt, stroke: 0.5pt) #h(2pt) ${escapedOptionLabel}`;
       });
 
-      return `*${escapedLabel}*${requiredMark} \\\n#stack(dir: ltr, spacing: 12pt,\n  ${options.join(',\n  ')}\n)`;
+      return `*${escapedLabel}*${requiredMark} \\\n${options.join(' #h(12pt) ')}`;
     }
 
     default:
-      return `*${escapedLabel}*${requiredMark} \\\n#text(fill: red)[Unknown field type]`;
+      return `*${escapedLabel}*${requiredMark} \\\n#text(fill: red, "Unknown field type")`;
   }
 }
 
@@ -213,25 +190,25 @@ export function generateFormTypst(schema: FormSchema): string {
 #set heading(numbering: none)
 
 // Custom styling
-#show heading.where(level: 1): it => [
-  #set text(size: 24pt, weight: "bold")
-  #align(center)[#it.body]
-]
+#show heading.where(level: 1): it => {
+  set text(size: 24pt, weight: "bold")
+  align(center, it.body)
+}
 
-#show heading.where(level: 2): it => [
-  #set text(size: 14pt, weight: "bold")
-  #v(0.8em)
-  #it.body
-  #v(0.3em)
-  #line(length: 100%, stroke: 0.5pt + gray)
-]
+#show heading.where(level: 2): it => {
+  set text(size: 14pt, weight: "bold")
+  v(0.8em)
+  it.body
+  v(0.3em)
+  line(length: 100%, stroke: 0.5pt + gray)
+}
 
-#show heading.where(level: 3): it => [
-  #set text(size: 10pt, weight: "bold", fill: gray)
-  #v(0.5em)
-  #upper(it.body)
-  #v(0.3em)
-]`);
+#show heading.where(level: 3): it => {
+  set text(size: 10pt, weight: "bold", fill: gray)
+  v(0.5em)
+  upper(it.body)
+  v(0.3em)
+}`);
 
   // Form title
   parts.push(`// Form title
