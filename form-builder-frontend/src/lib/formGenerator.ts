@@ -64,12 +64,12 @@ export function generateFieldHtml(field: FieldDefinition, fieldName: string): st
 
   // Tailwind classes
   const wrapperClass = 'mb-4';
-  const labelClass = 'block text-sm font-medium text-gray-700 mb-1';
+  const labelClass = 'block text-sm font-semibold text-gray-900 mb-1';
   const inputClass = 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500';
   const optionsContainerClass = 'space-y-2';
   const optionWrapperClass = 'flex items-center';
   const radioCheckboxClass = 'mr-2';
-  const optionLabelClass = 'text-sm text-gray-700';
+  const optionLabelClass = 'text-sm text-gray-900';
 
   // Handle textbox type
   if (type === 'textbox') {
@@ -218,7 +218,7 @@ export function generateSectionHtml(section: Section, sectionIndex: number): str
 
   // Start section with heading
   let sectionHtml = `            <div class="section" data-section-index="${sectionIndex}">
-                <h2>${heading}</h2>
+                <h2 class="text-xl font-semibold text-gray-900 mt-8 mb-4 pb-2 border-b-2 border-gray-900">${heading}</h2>
 `;
 
   // Loop through numbered field groups (1-10)
@@ -236,7 +236,7 @@ export function generateSectionHtml(section: Section, sectionIndex: number): str
 
     // Render subheading if present
     if (subheading && typeof subheading === 'string') {
-      sectionHtml += `                <h3>${escapeHtml(subheading)}</h3>
+      sectionHtml += `                <h3 class="text-sm font-medium text-gray-900 mt-6 mb-3 uppercase tracking-wider">${escapeHtml(subheading)}</h3>
 `;
     }
 
@@ -286,9 +286,9 @@ export function generateFormHtml(schema: FormSchema): string {
   });
 
   return `
-    <div class="max-w-4xl mx-auto">
-      <h1 class="text-2xl font-bold text-gray-900 mb-6">${escapeHtml(schema.form_title)}</h1>
-      <p class="text-sm text-gray-500 mb-8">Form Code: ${escapeHtml(schema.form_code)}</p>
+    <div class="max-w-4xl mx-auto bg-white p-8">
+      <h1 class="text-3xl font-bold text-gray-900 tracking-tight mb-6">${escapeHtml(schema.form_title)}</h1>
+      <p class="text-sm text-gray-900 mb-8">Form Code: ${escapeHtml(schema.form_code)}</p>
 
       <form class="space-y-6">
         ${sectionsHtml}
