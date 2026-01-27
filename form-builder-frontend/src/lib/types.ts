@@ -30,6 +30,8 @@ export interface FieldDefinition {
   validation?: ValidationRule;
   /** Options for dropdown, radio, and checkbox fields (key-value pairs) */
   options?: Record<string, string>;
+  /** Optional default/initial value for the field. For checkbox fields, use comma-separated values for multiple selections */
+  value?: string;
 }
 
 /**

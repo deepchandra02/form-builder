@@ -56,7 +56,7 @@ export function sanitizeName(label: string): string {
  * const html = generateFieldHtml(field, "email");
  */
 export function generateFieldHtml(field: FieldDefinition, fieldName: string): string {
-  const { type, label, required, validation, options } = field;
+  const { type, label, required, validation, options, value } = field;
 
   // Escape label for security
   const labelEscaped = escapeHtml(label);
@@ -81,25 +81,28 @@ export function generateFieldHtml(field: FieldDefinition, fieldName: string): st
       inputType = 'tel';
     }
 
+    const valueAttr = value ? ` value="${escapeHtml(value)}"` : '';
     return `<div class="${wrapperClass}">
   <label for="${fieldName}" class="${labelClass}">${labelEscaped}</label>
-  <input type="${inputType}" id="${fieldName}" name="${fieldName}"${requiredAttr} class="${inputClass}" />
+  <input type="${inputType}" id="${fieldName}" name="${fieldName}"${requiredAttr}${valueAttr} class="${inputClass}" />
 </div>`;
   }
 
   // Handle textarea type
   if (type === 'textarea') {
+    const content = value ? escapeHtml(value) : '';
     return `<div class="${wrapperClass}">
   <label for="${fieldName}" class="${labelClass}">${labelEscaped}</label>
-  <textarea id="${fieldName}" name="${fieldName}" rows="4"${requiredAttr} class="${inputClass}"></textarea>
+  <textarea id="${fieldName}" name="${fieldName}" rows="4"${requiredAttr} class="${inputClass}">${content}</textarea>
 </div>`;
   }
 
   // Handle date type
   if (type === 'date') {
+    const valueAttr = value ? ` value="${escapeHtml(value)}"` : '';
     return `<div class="${wrapperClass}">
   <label for="${fieldName}" class="${labelClass}">${labelEscaped}</label>
-  <input type="date" id="${fieldName}" name="${fieldName}"${requiredAttr} class="${inputClass}" />
+  <input type="date" id="${fieldName}" name="${fieldName}"${requiredAttr}${valueAttr} class="${inputClass}" />
 </div>`;
   }
 
@@ -110,10 +113,11 @@ export function generateFieldHtml(field: FieldDefinition, fieldName: string): st
     }
 
     let optionsHtml = '\n    <option value="">-- Select --</option>';
-    for (const [key, value] of Object.entries(options)) {
+    for (const [key, optionValue] of Object.entries(options)) {
       const keyEscaped = escapeHtml(key);
-      const valueEscaped = escapeHtml(value);
-      optionsHtml += `\n    <option value="${keyEscaped}">${valueEscaped}</option>`;
+      const valueEscaped = escapeHtml(optionValue);
+      const selected = value === key ? ' selected' : '';
+      optionsHtml += `\n    <option value="${keyEscaped}"${selected}>${valueEscaped}</option>`;
     }
 
     return `<div class="${wrapperClass}">
@@ -135,17 +139,18 @@ export function generateFieldHtml(field: FieldDefinition, fieldName: string): st
     <div class="${optionsContainerClass}">`;
 
     let isFirst = true;
-    for (const [key, value] of Object.entries(options)) {
+    for (const [key, optionValue] of Object.entries(options)) {
       const keyEscaped = escapeHtml(key);
-      const valueEscaped = escapeHtml(value);
+      const valueEscaped = escapeHtml(optionValue);
       const radioId = `${fieldName}_${key}`;
       // Add required only to first radio button
       const reqAttr = (required && isFirst) ? ' required' : '';
       isFirst = false;
+      const checked = value === key ? ' checked' : '';
 
       radioHtml += `
       <div class="${optionWrapperClass}">
-        <input type="radio" id="${radioId}" name="${fieldName}" value="${keyEscaped}"${reqAttr} class="${radioCheckboxClass}" />
+        <input type="radio" id="${radioId}" name="${fieldName}" value="${keyEscaped}"${reqAttr}${checked} class="${radioCheckboxClass}" />
         <label for="${radioId}" class="${optionLabelClass}">${valueEscaped}</label>
       </div>`;
     }
@@ -163,20 +168,24 @@ export function generateFieldHtml(field: FieldDefinition, fieldName: string): st
       throw new Error(`Field '${label}' of type 'checkbox' requires 'options' property`);
     }
 
+    // Support comma-separated values for multiple selections
+    const checkedValues = value?.split(',').map(v => v.trim()) || [];
+
     let checkboxHtml = `<div class="${wrapperClass}">
   <fieldset>
     <legend class="${labelClass}">${labelEscaped}</legend>
     <div class="${optionsContainerClass}">`;
 
-    for (const [key, value] of Object.entries(options)) {
+    for (const [key, optionValue] of Object.entries(options)) {
       const keyEscaped = escapeHtml(key);
-      const valueEscaped = escapeHtml(value);
+      const valueEscaped = escapeHtml(optionValue);
       const checkboxId = `${fieldName}_${key}`;
       const checkboxName = `${fieldName}_${key}`;
+      const checked = checkedValues.includes(key) ? ' checked' : '';
 
       checkboxHtml += `
       <div class="${optionWrapperClass}">
-        <input type="checkbox" id="${checkboxId}" name="${checkboxName}" value="${keyEscaped}"${requiredAttr} class="${radioCheckboxClass}" />
+        <input type="checkbox" id="${checkboxId}" name="${checkboxName}" value="${keyEscaped}"${requiredAttr}${checked} class="${radioCheckboxClass}" />
         <label for="${checkboxId}" class="${optionLabelClass}">${valueEscaped}</label>
       </div>`;
     }

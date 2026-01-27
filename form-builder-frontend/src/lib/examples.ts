@@ -23,7 +23,7 @@ export const POWER_OF_ATTORNEY_EXAMPLE: FormSchema = {
           },
           {
             label: "Gender",
-            type: "checkbox",
+            type: "radio",
             required: true,
             options: {
               male: "Male",
