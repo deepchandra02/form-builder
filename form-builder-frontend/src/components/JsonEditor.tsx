@@ -1,6 +1,5 @@
 import { Editor } from "@monaco-editor/react"
 import type { editor } from "monaco-editor"
-import { useTheme } from "@/hooks/useTheme"
 import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
@@ -15,6 +14,8 @@ interface JsonEditorProps {
   readOnly?: boolean
   onValidationError?: (errors: EditorMarker[]) => void
   wordWrap?: 'on' | 'off'
+  theme: 'light' | 'vs-dark'
+  onMount?: (editor: editor.IStandaloneCodeEditor) => void
 }
 
 /**
@@ -28,8 +29,9 @@ export function JsonEditor({
   readOnly = false,
   onValidationError,
   wordWrap = 'on',
+  theme,
+  onMount,
 }: JsonEditorProps) {
-  const theme = useTheme()
 
   const handleEditorChange = (value: string | undefined) => {
     onChange(value)
@@ -55,6 +57,7 @@ export function JsonEditor({
         onChange={handleEditorChange}
         onValidate={handleEditorValidation}
         theme={theme}
+        onMount={onMount}
         options={{
           readOnly,
           automaticLayout: true,

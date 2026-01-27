@@ -1,9 +1,11 @@
 import { useState, useMemo } from "react"
 import { Group, Panel, Separator } from "react-resizable-panels"
-import { GripVertical, AlertCircle, WrapText } from "lucide-react"
+import { GripVertical, AlertCircle, WrapText, Sun, Moon } from "lucide-react"
+import type { editor } from "monaco-editor"
 import { JsonEditor } from "@/components/JsonEditor"
 import { FormPreview } from "@/components/FormPreview"
 import { useDebounce } from "@/hooks/useDebounce"
+import { useEditorTheme } from "@/hooks/useEditorTheme"
 import { validateFormSchema } from "@/lib/types"
 import { generateFormHtml } from "@/lib/formGenerator"
 import { DEFAULT_JSON } from "@/lib/examples"
@@ -16,7 +18,17 @@ import { Button } from "@/components/ui/button"
 export function FormBuilderLayout() {
   const [jsonText, setJsonText] = useState(DEFAULT_JSON)
   const [wordWrap, setWordWrap] = useState<'on' | 'off'>('on')
+  const [monacoEditor, setMonacoEditor] = useState<editor.IStandaloneCodeEditor | null>(null)
+  const { editorTheme, toggleEditorTheme, monacoTheme } = useEditorTheme()
   const debouncedJson = useDebounce(jsonText, 300)
+
+  const handleToggleTheme = () => {
+    toggleEditorTheme()
+    if (monacoEditor) {
+      const newTheme = editorTheme === 'light' ? 'vs-dark' : 'light'
+      monacoEditor.updateOptions({ theme: newTheme })
+    }
+  }
 
   // Derive preview HTML and error state from debounced JSON
   const { previewHtml, error } = useMemo(() => {
@@ -57,15 +69,26 @@ export function FormBuilderLayout() {
                 <h2 className="text-sm font-medium text-muted-foreground">
                   Schema (JSON)
                 </h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setWordWrap(wordWrap === 'on' ? 'off' : 'on')}
-                  className="h-8 w-8 p-0 cursor-pointer"
-                  title="Toggle Word Wrap"
-                >
-                  <WrapText className={`h-4 w-4 ${wordWrap === 'on' ? 'text-foreground' : 'text-muted-foreground'}`} />
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleToggleTheme}
+                    className="h-7 w-7"
+                    title={`Switch to ${editorTheme === 'light' ? 'dark' : 'light'} mode`}
+                  >
+                    {editorTheme === 'light' ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setWordWrap(wordWrap === 'on' ? 'off' : 'on')}
+                    className="h-7 w-7"
+                    title={wordWrap === 'on' ? 'Disable word wrap' : 'Enable word wrap'}
+                  >
+                    <WrapText className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               </div>
 
               <div className="flex-1 p-4 flex flex-col gap-2 overflow-hidden min-w-0">
@@ -76,6 +99,8 @@ export function FormBuilderLayout() {
                       onChange={(value) => setJsonText(value || "")}
                       className="h-full w-full"
                       wordWrap={wordWrap}
+                      theme={monacoTheme}
+                      onMount={setMonacoEditor}
                     />
                   </div>
                 </div>

@@ -1,5 +1,4 @@
 import { cn } from "@/lib/utils"
-import { useTheme } from "@/hooks/useTheme"
 
 interface FormPreviewProps {
   html: string
@@ -49,8 +48,7 @@ function EmptyState() {
 }
 
 export function FormPreview({ html, className }: FormPreviewProps) {
-  const theme = useTheme()
-  const isDark = theme === "vs-dark"
+  const isDark = false // Always light mode
 
   // Handle empty state
   if (!html || html.trim() === "") {
